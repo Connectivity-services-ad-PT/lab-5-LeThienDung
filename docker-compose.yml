@@ -17,8 +17,8 @@ services:
     networks:
       - team-internal
       - class-net
-    ports:
-      - "${APP_PORT:-8000}:8000"
+    ports: 
+      - "8080:8000"
     healthcheck:
       test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
       interval: 30s
@@ -45,21 +45,22 @@ services:
       retries: 5
 
   # AI service mẫu dùng Python HTTP server hoặc FastAPI
+  # AI service mẫu dùng Python HTTP server hoặc FastAPI
   ai-service:
     image: python:3.11-slim
     container_name: fit4110-ai-lab05
     working_dir: /service
     volumes:
       - ./src/ai_service:/service
-    command: ["python", "main.py"]
+    command: ["sh", "-c", "pip install fastapi uvicorn requests && python main.py"]
     networks:
       - team-internal
     healthcheck:
       test: ["CMD-SHELL", "python -c \"import requests; import sys; sys.exit(0) if requests.get('http://localhost:9000/health').status_code == 200 else sys.exit(1)\""]
-      interval: 30s
+      interval: 10s
       timeout: 5s
-      retries: 3
-      start_period: 10s
+      retries: 5
+      start_period: 40s
 
 networks:
   team-internal:

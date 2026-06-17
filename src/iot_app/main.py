@@ -1,4 +1,5 @@
 import os
+import http
 from datetime import datetime, timezone
 from enum import Enum
 from typing import Dict, List, Optional
@@ -111,15 +112,21 @@ async def http_exception_handler(request: Request, exc: HTTPException) -> JSONRe
     if isinstance(exc.detail, dict):
         problem = exc.detail
     else:
+        # Code mới: Lấy title an toàn bằng thư viện http
+        title = "HTTP Error"
+        try:
+            title = http.HTTPStatus(exc.status_code).phrase
+        except ValueError:
+            pass
+
         problem = build_problem(
             status_code=exc.status_code,
-            title=status.HTTP_STATUS_CODES.get(exc.status_code, "HTTP Error"),
+            title=title, # Đã thay dòng lỗi bằng biến title an toàn
             detail=str(exc.detail),
             instance=str(request.url.path),
         )
 
     problem.setdefault("status", exc.status_code)
-    problem.setdefault("title", status.HTTP_STATUS_CODES.get(exc.status_code, "HTTP Error"))
     problem.setdefault("type", "about:blank")
     problem.setdefault("detail", "Request failed")
     problem.setdefault("instance", str(request.url.path))
